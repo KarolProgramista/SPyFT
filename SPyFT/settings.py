@@ -1,0 +1,3 @@
+HEADERSIZE = 32
+DEFAULT_PORT = 1246
+DEFAULT_PATH = "./downloaded"
