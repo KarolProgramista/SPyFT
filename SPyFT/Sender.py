@@ -8,7 +8,6 @@ class Sender(object):
         self.ip = ip
         self.port = port
 
-    # TODO: Add return codes support
     def send(self, path):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.ip, self.port))
@@ -19,7 +18,11 @@ class Sender(object):
         sleep(0.1)
 
         # Opening and sending file
-        fp = open(path, "rb")
+        try:
+            fp = open(path, "rb")
+        except FileNotFoundError as eee:  # Noice name
+            print(f"{eee}, Cannot send a file which does not exist")
+            return -1
 
         msg = fp.read()
         msg = bytes(f"{len(msg):<{HEADERSIZE}}", 'utf-8')+msg

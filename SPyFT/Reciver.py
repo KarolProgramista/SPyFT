@@ -2,7 +2,6 @@ import socket
 from SPyFT.settings import *
 
 
-# TODO: Add return codes
 class Receiver(object):
     def __init__(self, port=DEFAULT_PORT, save_path=DEFAULT_PATH):
         self.port = port
@@ -10,6 +9,7 @@ class Receiver(object):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((socket.gethostname(), self.port))
         self.socket.listen(5)
+        self.errno = 0
 
     def receiver_mainloop(self):
         while True:
@@ -17,6 +17,8 @@ class Receiver(object):
 
     def receive_file(self):
         file_content, file_name = self.receive_file_as_string()
+        if file_content == -1:  # On fail do nothing
+            return
         fp = open(f"{self.save_path}/{file_name}", "wb")
         fp.write(file_content)
         fp.close()
@@ -29,12 +31,20 @@ class Receiver(object):
         client_socket, address = self.socket.accept()
         print(f"Connection from {address} has been established.")
         file_name = self.__receive_file_name(client_socket)
+        if file_name == -1:  # Could not receive filename
+            client_socket.close()
+            self.errno = ErrorCodes.FILENAME_TRANSFER_FAIL
+            return [-1, -1]
         while True:
-            # TODO: Add adjustable transfer speed
-            msg = client_socket.recv(32)
+            msg = client_socket.recv(TRANSFER_SPEED)
             if downloading_new_file:
                 print(f"New file {file_name} size:", msg[:HEADERSIZE])
-                file_len = int(msg[:HEADERSIZE])
+                try:
+                    file_len = int(msg[:HEADERSIZE])
+                except ValueError:
+                    print("File transfer failed")
+                    self.errno = ErrorCodes.FILE_TRANSFER_FAIL
+                    return [-1, -1]
                 downloading_new_file = False
 
             full_file += msg
@@ -52,11 +62,14 @@ class Receiver(object):
         file_name_len = 0
 
         while True:
-            # TODO: Add adjustable transfer speed
-            msg = client_socket.recv(32)
+            msg = client_socket.recv(TRANSFER_SPEED)
             if receiving_new_file_name:
                 print("New file name size:", msg[:HEADERSIZE])
-                file_name_len = int(msg[:HEADERSIZE])
+                try:
+                    file_name_len = int(msg[:HEADERSIZE])
+                except ValueError:
+                    print("File name transfer failed")
+                    return -1
                 receiving_new_file_name = False
 
             full_file_name += msg

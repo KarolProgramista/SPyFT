@@ -5,3 +5,5 @@ SPyFT.egg-info
 tests.py
 testc.py
 downloaded
+.idea
+SPyFT/__pycache__/
