@@ -6,7 +6,7 @@ config = {
     'url': 'https://github.com/KarolProgramista/SPyFT',
     'download_url': 'https://github.com/KarolProgramista/SPyFT',
     'author_mail': 'konatkarol@gmail.com',
-    'version': '0.1',
+    'version': '1.0',
     'install_requires': [],
     'packages': find_packages(),
     'scripts': [],
